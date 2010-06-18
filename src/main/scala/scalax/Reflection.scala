@@ -36,13 +36,11 @@ object Reflection {
     }
   }
 
-  def as[A](x: Any)(implicit m: ClassManifest[A]): Option[A] = {
-    System.out.println(Data.getClass(x) + " ||| " + m.erasure)
+  def as[A](x: Any)(implicit m: ClassManifest[A]): Option[A] =
     if (m.erasure.isAssignableFrom(Data.getClass(x)))
       Some(x.asInstanceOf[A])
     else
       None
-  }
 
   def getterName(name: String) = "get" + name.capitalize
   def booleanGetterName(name: String) = "is" + name.capitalize
