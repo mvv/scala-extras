@@ -34,7 +34,7 @@ class Property[V] private[scalax](val getter: Option[Method],
                  else this
   def writeOnly = if (getter.isDefined) new Property[V](getter, None)
                   else this
-  def get(obj: AnyRef): V = getter.get.invoke(obj).asInstanceOf[V]
+  def get(obj: AnyRef): V = Data.fromRef(getter.get.invoke(obj), propertyType)
   def set(obj: AnyRef, x: V): Unit = setter.get.invoke(obj, Data.box(x))
 }
 
