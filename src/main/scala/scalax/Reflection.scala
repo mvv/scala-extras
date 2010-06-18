@@ -22,11 +22,11 @@ import scala.util.control.Exception._
 
 object Reflection {
   object implicits {
-    implicit def toCastable(x: Any) = new AnyRef {
+    implicit def toCastable(x: Any) = new {
       def as[A]()(implicit m: ClassManifest[A]) = Reflection.as(x)(m)
     }
 
-    implicit def toRichClass(clazz: Class[_]) = new AnyRef {
+    implicit def toRichClass(clazz: Class[_]) = new {
       def getter(name: String) = Reflection.getter(clazz, name)
       def setters(name: String) = Reflection.setters(clazz, name)
       def setter(name: String, propertyType: Class[_]) =
