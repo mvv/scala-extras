@@ -16,6 +16,7 @@
 
 package scalax.data
 
+import java.lang.reflect.{Method, Modifier}
 import scalax.Data
 import scalax.Data.implicits._
 import scalax.Errors
@@ -270,6 +271,21 @@ object StringToNumericConverter extends Converter {
       } catch {
         case e: NumberFormatException =>
           throw new ConversionException(value, toType, e)
+      }
+    } else
+      None
+}
+
+object FromStringConverter extends Converter {
+  def convert[T](value: Any, toType: Class[T]): Option[T] =
+    if (value.isInstanceOf[String]) {
+      Errors.ignore {
+        toType.getMethod("fromString", classOf[String])
+      } filter { m =>
+        (m.getModifiers & Modifier.STATIC) != 0 &&
+        m.getReturnType == toType
+      } map { m =>
+        m.invoke(null, Data.box(value)).asInstanceOf[T]
       }
     } else
       None
