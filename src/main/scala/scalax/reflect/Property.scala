@@ -18,13 +18,18 @@ package scalax.reflect
 
 import java.lang.reflect.Method
 import scalax.Data
+import scalax.Data.implicits._
 
 class Property[V] private[scalax](val getter: Option[Method],
                                   val setter: Option[Method]) {
+  type Value = V
   require(getter.isDefined || setter.isDefined)
-  val propertyType = getter.map(_.getReturnType).
-                       getOrElse(setter.get.getParameterTypes()(0)).
-                         asInstanceOf[Class[V]]
+  val (propertyType, name) =
+    getter.map(m => (m.getReturnType, m.getName.substring(3).decapitalize)).
+      getOrElse({
+        val m = setter.get
+        (m.getParameterTypes()(0), m.getName.substring(3).decapitalize)
+      }).asInstanceOf[(Class[Value], String)]
   def isReadable = getter.isDefined
   def isWritable = setter.isDefined
   def isReadOnly = setter.isEmpty
@@ -34,7 +39,7 @@ class Property[V] private[scalax](val getter: Option[Method],
                  else this
   def writeOnly = if (getter.isDefined) new Property[V](getter, None)
                   else this
-  def get(obj: AnyRef): V = Data.fromRef(getter.get.invoke(obj), propertyType)
-  def set(obj: AnyRef, x: V): Unit = setter.get.invoke(obj, Data.box(x))
+  def get(obj: AnyRef): Value = Data.fromRef(getter.get.invoke(obj), propertyType)
+  def set(obj: AnyRef, x: Value): Unit = setter.get.invoke(obj, Data.box(x))
 }
 
