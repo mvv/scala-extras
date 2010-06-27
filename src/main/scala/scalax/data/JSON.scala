@@ -209,7 +209,7 @@ object JSON {
 
     val beanType: Class[T]
 
-    protected def hint(path: Path, value: Any): Hint
+    protected def hint(path: Path, value: Any): Hint = DefaultHint
 
     private def serializeSimpleValue(value: Any): Option[JsValue] = Data.unbox(value) match {
       case null => Some(JsNull)
