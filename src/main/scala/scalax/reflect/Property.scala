@@ -25,8 +25,11 @@ class Property[V] private[scalax](val getter: Option[Method],
   type Value = V
   require(getter.isDefined || setter.isDefined)
   val (propertyType, name) =
-    getter.map(m => (m.getReturnType, m.getName.substring(3).decapitalize)).
-      getOrElse({
+    getter.map(m => {
+        val name = m.getName
+        (m.getReturnType,
+         name.substring(if (name(0) == 'g') 3 else 2).decapitalize)
+      }).getOrElse({
         val m = setter.get
         (m.getParameterTypes()(0), m.getName.substring(3).decapitalize)
       }).asInstanceOf[(Class[Value], String)]
