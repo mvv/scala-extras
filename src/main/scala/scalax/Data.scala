@@ -28,6 +28,16 @@ object Data {
   val bigIntLongMin = BigInt.MinLong
   val bitIntLongMax = BigInt.MaxLong
 
+  sealed trait EitherType[T, T1, T2] extends (T => Either[T1, T2])
+  object EitherType {
+    implicit def firstType[T, T2]: EitherType[T, T, T2] = new EitherType[T, T, T2] {
+      def apply(x: T) = Left(x)
+    }
+    implicit def secondType[T, T1]: EitherType[T, T1, T] = new EitherType[T, T1, T] {
+      def apply(x: T) = Right(x)
+    }
+  }
+
   object implicits {
     implicit def nullableAsOption[T <: AnyRef](x: T) = new {
       def asOption: Option[T] = x match {
