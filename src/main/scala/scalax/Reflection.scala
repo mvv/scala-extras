@@ -18,7 +18,6 @@ package scalax
 
 import java.lang.reflect.Method
 import scalax.reflect.Property
-import scala.util.control.Exception._
 
 object Reflection {
   object implicits {
@@ -33,6 +32,8 @@ object Reflection {
         Reflection.setter(clazz, name, propertyType)
       def property[V](name: String): Option[Property[V]] =
         Reflection.property(clazz, name)
+      def readOnlyProperties: Iterator[Property[_]] =
+        Reflection.readOnlyProperties(clazz)
     }
   }
 
@@ -69,4 +70,15 @@ object Reflection {
           case _ => None
         }
     }
+  def readOnlyProperties(clazz: Class[_]): Iterator[Property[_]] =
+    Iterator.empty ++
+    clazz.getMethods.iterator.filter(m =>
+      m.getParameterTypes.size == 0 &&
+      m.getReturnType != classOf[Unit] && {
+        val name = m.getName
+        (name.startsWith("get") && name.size >= 4 && name(3).isUpper) ||
+        (name.startsWith("is") && name.size >= 3 && name(2).isUpper &&
+          (m.getReturnType == classOf[Boolean] ||
+           m.getReturnType == classOf[java.lang.Boolean]))
+      }).map(m => new Property(Some(m), None))
 }
