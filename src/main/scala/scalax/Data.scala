@@ -43,6 +43,17 @@ object Data {
       }
     }
 
+    implicit def toRichString(x: String) = new {
+      def decapitalize: String =
+        if (x.size == 0)
+          x
+        else {
+          val chars = x.toCharArray
+          chars(0) = chars(0).toLower
+          return new String(chars)
+        }
+    }
+
     implicit def traversableOnceExtraFolds[T](t: TraversableOnce[T]) = new {
       def foldLeftWhile[B, C](z: B)
                              (f: (B, T) => Either[C, B]): Either[C, B] =
