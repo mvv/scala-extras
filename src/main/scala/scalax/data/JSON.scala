@@ -197,6 +197,13 @@ object JSON {
           Some(path.init, path.last)
     }
 
+    object UntypedPath {
+      def unapplySeq(path: Path): Option[Seq[Any]] = Some(path.map {
+        case Path.Member(name, _) => name
+        case Path.Elem(index, _) => index
+      })
+    }
+
     sealed trait Hint {
       def orElse(hint: => Hint) = this
     }
