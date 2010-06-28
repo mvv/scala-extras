@@ -197,8 +197,12 @@ object JSON {
           Some(path.init, path.last)
     }
 
-    sealed trait Hint
-    object DefaultHint extends Hint
+    sealed trait Hint {
+      def orElse(hint: => Hint) = this
+    }
+    object DefaultHint extends Hint {
+      override def orElse(hint: => Hint) = hint
+    }
     object OmitHint extends Hint
     case class ValueHint(value: JsValue) extends Hint
     case class ArrayHint[T](clazz: Class[T], element: Iterator[T]) extends Hint
@@ -210,6 +214,35 @@ object JSON {
     val beanType: Class[T]
 
     protected def hint(path: Path, value: Any): Hint = DefaultHint
+
+    def preHint(pre: PartialFunction[(Path, Any), Hint]) = {
+      val parent = this
+      new BeanSerializer[T] {
+        val beanType = parent.beanType
+
+        protected override def hint(path: Path, value: Any) = {
+          (if (pre.isDefinedAt((path, value)))
+             pre((path, value))
+           else
+             DefaultHint) orElse parent.hint(path, value)
+        }
+      }
+    }
+
+    def postHint(post: PartialFunction[(Path, Any), Hint]) = {
+      val parent = this
+      new BeanSerializer[T] {
+        val beanType = parent.beanType
+
+        protected override def hint(path: Path, value: Any) =
+          parent.hint(path, value) orElse {
+            if (post.isDefinedAt((path, value)))
+              post((path, value))
+            else
+              DefaultHint
+          }
+      }
+    }
 
     private def serializeSimpleValue(value: Any): Option[JsValue] = Data.unbox(value) match {
       case null => Some(JsNull)
